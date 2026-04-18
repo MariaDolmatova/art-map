@@ -55,17 +55,19 @@ def extract_qid(url: str) -> str | None:
 
 def query_birth_places(qids: list[str]) -> dict[str, tuple]:
     """
-    Returns {qid: (lat, lng, birth_place_label)} for artists with birth coords.
+    Returns {qid: (lat, lng, "City, Country")} for artists with birth coords.
+    Uses P17 (country) on the birth place to get historical country names.
     """
     values = " ".join(f"wd:{q}" for q in qids)
     sparql = f"""
-    SELECT ?item ?birthPlaceLabel ?lat ?lng WHERE {{
+    SELECT ?item ?birthPlaceLabel ?countryLabel ?lat ?lng WHERE {{
       VALUES ?item {{ {values} }}
       OPTIONAL {{
         ?item wdt:P19 ?birthPlace .
         ?birthPlace wdt:P625 ?coords .
         BIND(geof:latitude(?coords)  AS ?lat)
         BIND(geof:longitude(?coords) AS ?lng)
+        OPTIONAL {{ ?birthPlace wdt:P17 ?country . }}
       }}
       SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
     }}
@@ -83,10 +85,13 @@ def query_birth_places(qids: list[str]) -> dict[str, tuple]:
         qid = b["item"]["value"].split("/")[-1]
         if "lat" not in b or qid in results:
             continue
+        city    = b.get("birthPlaceLabel", {}).get("value", "")
+        country = b.get("countryLabel",    {}).get("value", "")
+        label   = f"{city}, {country}" if country else city
         results[qid] = (
             float(b["lat"]["value"]),
             float(b["lng"]["value"]),
-            b.get("birthPlaceLabel", {}).get("value", ""),
+            label,
         )
     return results
 
