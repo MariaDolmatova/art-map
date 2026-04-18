@@ -1,0 +1,5 @@
+MetObjects.csv
+artmap.duckdb
+__pycache__/
+*.pyc
+.claude/
