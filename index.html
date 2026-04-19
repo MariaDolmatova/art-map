@@ -187,10 +187,23 @@
     preferCanvas: true,
   });
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  const realistic = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 19,
-  }).addTo(map);
+  });
+
+  const schematic = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© <a href="https://carto.com/">CARTO</a>',
+    maxZoom: 19,
+  });
+
+  schematic.addTo(map);
+
+  L.control.layers(
+    { 'Schematic': schematic, 'Realistic': realistic },
+    {},
+    { position: 'topright', collapsed: false }
+  ).addTo(map);
 
   const markers = L.markerClusterGroup({
     chunkedLoading: true,
