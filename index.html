@@ -229,7 +229,13 @@
     .then(artists => {
       const totalPaintings = artists.reduce((n, a) => n + a.paintings.length, 0);
       artists.forEach(a => {
-        const marker = L.marker([a.lat, a.lng]);
+        const marker = L.circleMarker([a.lat, a.lng], {
+          radius: 6,
+          fillColor: '#c9a96e',
+          color: '#8a6a3a',
+          weight: 1,
+          fillOpacity: 0.85,
+        });
         marker.bindPopup(() => popupHTML(a), { maxWidth: 320 });
         markers.addLayer(marker);
       });
