@@ -55,13 +55,12 @@ def extract_qid(url: str) -> str | None:
 
 def query_birth_places(qids: list[str]) -> dict[str, tuple]:
     """
-    Returns {qid: (lat, lng, "City, Country", "movement1; movement2")}
-    Uses P17 (country) for historical country names, P135 for art movements.
-    Multiple movements are joined with "; ".
+    Returns {qid: (lat, lng, "City, Country", "movement1; movement2", "citizenship")}
+    P19 = place of birth, P17 = country (historical), P135 = movement, P27 = citizenship.
     """
     values = " ".join(f"wd:{q}" for q in qids)
     sparql = f"""
-    SELECT ?item ?birthPlaceLabel ?countryLabel ?movementLabel ?lat ?lng WHERE {{
+    SELECT ?item ?birthPlaceLabel ?countryLabel ?movementLabel ?citizenshipLabel ?lat ?lng WHERE {{
       VALUES ?item {{ {values} }}
       OPTIONAL {{
         ?item wdt:P19 ?birthPlace .
@@ -71,6 +70,7 @@ def query_birth_places(qids: list[str]) -> dict[str, tuple]:
         OPTIONAL {{ ?birthPlace wdt:P17 ?country . }}
       }}
       OPTIONAL {{ ?item wdt:P135 ?movement . }}
+      OPTIONAL {{ ?item wdt:P27  ?citizenship . }}
       SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
     }}
     """
@@ -82,28 +82,33 @@ def query_birth_places(qids: list[str]) -> dict[str, tuple]:
     )
     resp.raise_for_status()
 
-    # Collect movements separately (multiple rows per artist)
-    movements: dict[str, list[str]] = {}
-    coords_data: dict[str, tuple] = {}
+    movements:    dict[str, list[str]] = {}
+    citizenships: dict[str, list[str]] = {}
+    coords_data:  dict[str, tuple]     = {}
 
     for b in resp.json()["results"]["bindings"]:
         qid = b["item"]["value"].split("/")[-1]
 
-        # Collect coords once per artist
         if "lat" in b and qid not in coords_data:
             city    = b.get("birthPlaceLabel", {}).get("value", "")
             country = b.get("countryLabel",    {}).get("value", "")
             label   = f"{city}, {country}" if country else city
             coords_data[qid] = (float(b["lat"]["value"]), float(b["lng"]["value"]), label)
 
-        # Collect all movements (multiple rows)
-        mv = b.get("movementLabel", {}).get("value", "")
+        mv = b.get("movementLabel",    {}).get("value", "")
+        cz = b.get("citizenshipLabel", {}).get("value", "")
         if mv and mv not in movements.get(qid, []):
             movements.setdefault(qid, []).append(mv)
+        if cz and cz not in citizenships.get(qid, []):
+            citizenships.setdefault(qid, []).append(cz)
 
     results = {}
     for qid, (lat, lng, label) in coords_data.items():
-        results[qid] = (lat, lng, label, "; ".join(movements.get(qid, [])))
+        results[qid] = (
+            lat, lng, label,
+            "; ".join(movements.get(qid, [])),
+            "; ".join(citizenships.get(qid, [])),
+        )
     return results
 
 
@@ -135,6 +140,8 @@ def main():
     ).fetchall()}
     if "birth_place" not in cols:
         con.execute("ALTER TABLE paintings ADD COLUMN birth_place VARCHAR")
+    if "citizenship" not in cols:
+        con.execute("ALTER TABLE paintings ADD COLUMN citizenship VARCHAR")
 
     object_ids = get_stored_ids(con)
     oid_to_url = get_wikidata_urls(object_ids)
@@ -162,14 +169,15 @@ def main():
     for qid, oids in qid_to_oids.items():
         if qid not in birth_data:
             continue
-        lat, lng, place_label, movement = birth_data[qid]
+        lat, lng, place_label, movement, citizenship = birth_data[qid]
         for oid in oids:
             con.execute("""
                 UPDATE paintings
                 SET lat = ?, lng = ?, birth_place = ?, place_of_origin = ?,
-                    period = CASE WHEN (period IS NULL OR period = '') AND ? != '' THEN ? ELSE period END
+                    period = CASE WHEN (period IS NULL OR period = '') AND ? != '' THEN ? ELSE period END,
+                    citizenship = ?
                 WHERE object_id = ?
-            """, [lat, lng, place_label, place_label, movement, movement, oid])
+            """, [lat, lng, place_label, place_label, movement, movement, citizenship, oid])
             updated += 1
 
     total    = con.execute("SELECT COUNT(*) FROM paintings").fetchone()[0]

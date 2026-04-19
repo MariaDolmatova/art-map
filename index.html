@@ -119,6 +119,41 @@
 
     .popup-link:hover { color: #e8c87a; border-color: #e8c87a; }
 
+    .paintings-list {
+      margin-top: 10px;
+      max-height: 220px;
+      overflow-y: auto;
+      border-top: 1px solid #333;
+      padding-top: 8px;
+    }
+
+    .painting-row {
+      font-size: 0.8rem;
+      padding: 4px 0;
+      border-bottom: 1px solid #2a2a2a;
+      line-height: 1.4;
+    }
+
+    .painting-row:last-child { border-bottom: none; }
+
+    .painting-link {
+      color: #c9a96e;
+      text-decoration: none;
+    }
+
+    .painting-link:hover { color: #e8c87a; text-decoration: underline; }
+
+    .painting-row em {
+      color: #777;
+      font-style: normal;
+      font-size: 0.75rem;
+    }
+
+    .painting-medium {
+      color: #666;
+      font-size: 0.72rem;
+    }
+
     /* cluster overrides */
     .marker-cluster-small,
     .marker-cluster-medium,
@@ -162,29 +197,27 @@
     maxClusterRadius: 60,
   });
 
-  function popupHTML(p) {
-    const img = p.thumbnail
-      ? `<img src="${p.thumbnail}" alt="${escHtml(p.title)}" loading="lazy" />`
-      : '';
+  function popupHTML(a) {
     const meta = [
-      p.date           ? `year       <span>${escHtml(p.date)}</span>` : '',
-      p.place_of_origin? `origin     <span>${escHtml(p.place_of_origin)}</span>` : '',
-      p.medium         ? `medium     <span>${escHtml(p.medium.slice(0, 60))}</span>` : '',
-      p.period         ? `period     <span>${escHtml(p.period)}</span>` : '',
-      p.museum         ? `museum     <span>${escHtml(p.museum)}</span>` : '',
+      a.birth_place  ? `born        <span>${escHtml(a.birth_place)}</span>`  : '',
+      a.citizenship  ? `citizenship <span>${escHtml(a.citizenship)}</span>`  : '',
+      a.movement     ? `movement    <span>${escHtml(a.movement)}</span>`     : '',
     ].filter(Boolean).join('<br>');
 
-    const link = p.museum_url
-      ? `<a class="popup-link" href="${p.museum_url}" target="_blank" rel="noopener">View on museum website →</a>`
-      : '';
+    const paintingRows = a.paintings.map(p => {
+      const link = p.museum_url
+        ? `<a class="painting-link" href="${p.museum_url}" target="_blank" rel="noopener">${escHtml(p.title || 'Untitled')}</a>`
+        : `<span>${escHtml(p.title || 'Untitled')}</span>`;
+      const date   = p.date   ? ` <em>${escHtml(p.date)}</em>`              : '';
+      const medium = p.medium ? `<div class="painting-medium">${escHtml(p.medium.slice(0, 60))}</div>` : '';
+      return `<div class="painting-row">${link}${date}${medium}</div>`;
+    }).join('');
 
     return `
       <div class="popup">
-        ${img}
-        <div class="popup-title">${escHtml(p.title || 'Untitled')}</div>
-        <div class="popup-artist">${escHtml(p.artist || 'Unknown artist')}</div>
+        <div class="popup-artist">${escHtml(a.artist || 'Unknown artist')}</div>
         <div class="popup-meta">${meta}</div>
-        ${link}
+        <div class="paintings-list">${paintingRows}</div>
       </div>`;
   }
 
@@ -201,15 +234,16 @@
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.json();
     })
-    .then(paintings => {
-      paintings.forEach(p => {
-        const marker = L.marker([p.lat, p.lng]);
-        marker.bindPopup(() => popupHTML(p), { maxWidth: 300 });
+    .then(artists => {
+      const totalPaintings = artists.reduce((n, a) => n + a.paintings.length, 0);
+      artists.forEach(a => {
+        const marker = L.marker([a.lat, a.lng]);
+        marker.bindPopup(() => popupHTML(a), { maxWidth: 320, maxHeight: 400 });
         markers.addLayer(marker);
       });
       map.addLayer(markers);
       document.getElementById('count').textContent =
-        `${paintings.length} painting${paintings.length !== 1 ? 's' : ''}`;
+        `${artists.length} artists · ${totalPaintings} paintings`;
     })
     .catch(err => {
       document.getElementById('count').textContent = 'error loading data';
