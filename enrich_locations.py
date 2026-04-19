@@ -130,7 +130,9 @@ def main():
     con = duckdb.connect(DB_PATH)
 
     # Add birth_place column if it doesn't exist yet
-    cols = {r[0] for r in con.execute("PRAGMA table_info('paintings')").fetchall()}
+    cols = {r[0] for r in con.execute(
+        "SELECT column_name FROM information_schema.columns WHERE table_name = 'paintings'"
+    ).fetchall()}
     if "birth_place" not in cols:
         con.execute("ALTER TABLE paintings ADD COLUMN birth_place VARCHAR")
 
