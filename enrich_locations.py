@@ -55,12 +55,13 @@ def extract_qid(url: str) -> str | None:
 
 def query_birth_places(qids: list[str]) -> dict[str, tuple]:
     """
-    Returns {qid: (lat, lng, "City, Country")} for artists with birth coords.
-    Uses P17 (country) on the birth place to get historical country names.
+    Returns {qid: (lat, lng, "City, Country", "movement1; movement2")}
+    Uses P17 (country) for historical country names, P135 for art movements.
+    Multiple movements are joined with "; ".
     """
     values = " ".join(f"wd:{q}" for q in qids)
     sparql = f"""
-    SELECT ?item ?birthPlaceLabel ?countryLabel ?lat ?lng WHERE {{
+    SELECT ?item ?birthPlaceLabel ?countryLabel ?movementLabel ?lat ?lng WHERE {{
       VALUES ?item {{ {values} }}
       OPTIONAL {{
         ?item wdt:P19 ?birthPlace .
@@ -69,6 +70,7 @@ def query_birth_places(qids: list[str]) -> dict[str, tuple]:
         BIND(geof:longitude(?coords) AS ?lng)
         OPTIONAL {{ ?birthPlace wdt:P17 ?country . }}
       }}
+      OPTIONAL {{ ?item wdt:P135 ?movement . }}
       SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
     }}
     """
@@ -80,19 +82,28 @@ def query_birth_places(qids: list[str]) -> dict[str, tuple]:
     )
     resp.raise_for_status()
 
-    results = {}
+    # Collect movements separately (multiple rows per artist)
+    movements: dict[str, list[str]] = {}
+    coords_data: dict[str, tuple] = {}
+
     for b in resp.json()["results"]["bindings"]:
         qid = b["item"]["value"].split("/")[-1]
-        if "lat" not in b or qid in results:
-            continue
-        city    = b.get("birthPlaceLabel", {}).get("value", "")
-        country = b.get("countryLabel",    {}).get("value", "")
-        label   = f"{city}, {country}" if country else city
-        results[qid] = (
-            float(b["lat"]["value"]),
-            float(b["lng"]["value"]),
-            label,
-        )
+
+        # Collect coords once per artist
+        if "lat" in b and qid not in coords_data:
+            city    = b.get("birthPlaceLabel", {}).get("value", "")
+            country = b.get("countryLabel",    {}).get("value", "")
+            label   = f"{city}, {country}" if country else city
+            coords_data[qid] = (float(b["lat"]["value"]), float(b["lng"]["value"]), label)
+
+        # Collect all movements (multiple rows)
+        mv = b.get("movementLabel", {}).get("value", "")
+        if mv and mv not in movements.get(qid, []):
+            movements.setdefault(qid, []).append(mv)
+
+    results = {}
+    for qid, (lat, lng, label) in coords_data.items():
+        results[qid] = (lat, lng, label, "; ".join(movements.get(qid, [])))
     return results
 
 
@@ -149,13 +160,14 @@ def main():
     for qid, oids in qid_to_oids.items():
         if qid not in birth_data:
             continue
-        lat, lng, place_label = birth_data[qid]
+        lat, lng, place_label, movement = birth_data[qid]
         for oid in oids:
             con.execute("""
                 UPDATE paintings
-                SET lat = ?, lng = ?, birth_place = ?, place_of_origin = ?
+                SET lat = ?, lng = ?, birth_place = ?, place_of_origin = ?,
+                    period = CASE WHEN (period IS NULL OR period = '') AND ? != '' THEN ? ELSE period END
                 WHERE object_id = ?
-            """, [lat, lng, place_label, place_label, oid])
+            """, [lat, lng, place_label, place_label, movement, movement, oid])
             updated += 1
 
     total    = con.execute("SELECT COUNT(*) FROM paintings").fetchone()[0]
