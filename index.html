@@ -49,7 +49,7 @@
     }
 
     #map .leaflet-tile-pane {
-      opacity: 0.75;
+      opacity: 0.65;
     }
 
     /* ── Popup ── */
@@ -160,8 +160,8 @@
     .marker-cluster-small div   { background-color: rgba(181, 130, 60, 0.9); color: #fff; }
     .marker-cluster-medium      { background-color: rgba(160, 90,  40, 0.5); }
     .marker-cluster-medium div  { background-color: rgba(160, 90,  40, 0.9); color: #fff; }
-    .marker-cluster-large       { background-color: rgba(130, 50,  20, 0.5); }
-    .marker-cluster-large div   { background-color: rgba(130, 50,  20, 0.9); color: #fff; }
+    .marker-cluster-large       { background-color: rgba(124, 15, 48, 0.5); }
+    .marker-cluster-large div   { background-color: rgba(124, 15, 48, 0.9); color: #fff; }
 
     .emoji-marker {
       font-size: 18px;
@@ -170,6 +170,80 @@
       filter: drop-shadow(0 1px 2px rgba(0,0,0,0.7));
       cursor: pointer;
       white-space: nowrap;
+    }
+
+    /* ── Timeline ── */
+    #timeline {
+      flex-shrink: 0;
+      background: #111;
+      border-top: 1px solid #333;
+      padding: 10px 24px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    #timeline-label {
+      font-family: monospace;
+      font-size: 0.78rem;
+      color: #aaa;
+      text-align: center;
+    }
+
+    #timeline-label span { color: #e8d8b0; }
+
+    .range-wrap {
+      position: relative;
+      height: 20px;
+    }
+
+    .range-wrap input[type=range] {
+      position: absolute;
+      width: 100%;
+      height: 4px;
+      appearance: none;
+      background: transparent;
+      pointer-events: none;
+      outline: none;
+    }
+
+    .range-wrap input[type=range]::-webkit-slider-thumb {
+      appearance: none;
+      pointer-events: all;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #c9a96e;
+      border: 2px solid #8a6a3a;
+      cursor: grab;
+    }
+
+    .range-wrap input[type=range]::-moz-range-thumb {
+      pointer-events: all;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #c9a96e;
+      border: 2px solid #8a6a3a;
+      cursor: grab;
+    }
+
+    #range-track {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 4px;
+      width: 100%;
+      background: #333;
+      border-radius: 2px;
+      z-index: 0;
+    }
+
+    #range-fill {
+      position: absolute;
+      height: 100%;
+      background: #c9a96e;
+      border-radius: 2px;
     }
   </style>
 </head>
@@ -181,6 +255,17 @@
 </header>
 
 <div id="map"></div>
+
+<div id="timeline">
+  <div id="timeline-label">
+    <span id="year-from">1300</span> – <span id="year-to">2026</span>
+  </div>
+  <div class="range-wrap">
+    <div id="range-track"><div id="range-fill"></div></div>
+    <input type="range" id="slider-from" min="1300" max="2026" value="1300" step="1">
+    <input type="range" id="slider-to"   min="1300" max="2026" value="2026" step="1">
+  </div>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
@@ -287,14 +372,56 @@
       .replace(/"/g, '&quot;');
   }
 
+  // Parse the first 4-digit year from a date string like "ca. 1650", "1700–1750"
+  function parseYear(dateStr) {
+    const m = String(dateStr).match(/\d{4}/);
+    return m ? parseInt(m[0]) : null;
+  }
+
+  const sliderFrom = document.getElementById('slider-from');
+  const sliderTo   = document.getElementById('slider-to');
+  const labelFrom  = document.getElementById('year-from');
+  const labelTo    = document.getElementById('year-to');
+  const fill       = document.getElementById('range-fill');
+
+  function updateFill() {
+    const min  = parseInt(sliderFrom.min);
+    const max  = parseInt(sliderFrom.max);
+    const from = parseInt(sliderFrom.value);
+    const to   = parseInt(sliderTo.value);
+    const left  = (from - min) / (max - min) * 100;
+    const right = (to   - min) / (max - min) * 100;
+    fill.style.left  = left  + '%';
+    fill.style.width = (right - left) + '%';
+  }
+
   fetch('data/paintings.json')
     .then(r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.json();
     })
     .then(artists => {
-      const totalPaintings = artists.reduce((n, a) => n + a.paintings.length, 0);
+      // Pre-compute min year per artist
       artists.forEach(a => {
+        const years = a.paintings.map(p => parseYear(p.date)).filter(y => y !== null);
+        a._minYear = years.length ? Math.min(...years) : null;
+        a._maxYear = years.length ? Math.max(...years) : null;
+      });
+
+      // Find data range for slider bounds
+      const allYears = artists.flatMap(a => [a._minYear, a._maxYear]).filter(Boolean);
+      const dataMin  = Math.min(...allYears);
+      const dataMax  = 2026;
+      [sliderFrom, sliderTo].forEach(s => { s.min = dataMin; s.max = dataMax; });
+      sliderFrom.value = dataMin;
+      sliderTo.value   = dataMax;
+      labelFrom.textContent = dataMin;
+      labelTo.textContent   = dataMax;
+      updateFill();
+
+      // Build markers
+      const markerMap = new Map(); // artist index → marker
+      artists.forEach((a, i) => {
         const emoji = movementEmojis(a.movement);
         const icon = L.divIcon({
           html: `<div class="emoji-marker">${emoji}</div>`,
@@ -304,9 +431,45 @@
         });
         const marker = L.marker([a.lat, a.lng], { icon });
         marker.bindPopup(() => popupHTML(a), { maxWidth: 320 });
+        markerMap.set(i, marker);
         markers.addLayer(marker);
       });
       map.addLayer(markers);
+
+      function applyFilter() {
+        const from = parseInt(sliderFrom.value);
+        const to   = parseInt(sliderTo.value);
+        labelFrom.textContent = from;
+        labelTo.textContent   = to;
+        updateFill();
+
+        markers.clearLayers();
+        let visible = 0, paintings = 0;
+        artists.forEach((a, i) => {
+          const inRange = a._minYear === null
+            || (a._minYear <= to && (a._maxYear === null || a._maxYear >= from));
+          if (inRange) {
+            markers.addLayer(markerMap.get(i));
+            visible++;
+            paintings += a.paintings.length;
+          }
+        });
+        document.getElementById('count').textContent =
+          `${visible} artists · ${paintings} paintings`;
+      }
+
+      sliderFrom.addEventListener('input', () => {
+        if (parseInt(sliderFrom.value) > parseInt(sliderTo.value))
+          sliderFrom.value = sliderTo.value;
+        applyFilter();
+      });
+      sliderTo.addEventListener('input', () => {
+        if (parseInt(sliderTo.value) < parseInt(sliderFrom.value))
+          sliderTo.value = sliderFrom.value;
+        applyFilter();
+      });
+
+      const totalPaintings = artists.reduce((n, a) => n + a.paintings.length, 0);
       document.getElementById('count').textContent =
         `${artists.length} artists · ${totalPaintings} paintings`;
     })
