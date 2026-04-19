@@ -136,23 +136,14 @@
 
     .painting-row:last-child { border-bottom: none; }
 
-    .painting-link {
-      color: #c9a96e;
-      text-decoration: none;
-    }
-
+    .painting-link { color: #c9a96e; text-decoration: none; }
     .painting-link:hover { color: #e8c87a; text-decoration: underline; }
 
-    .painting-row em {
-      color: #777;
-      font-style: normal;
-      font-size: 0.75rem;
-    }
+    .painting-row em { color: #777; font-style: normal; font-size: 0.75rem; }
+    .painting-medium { color: #666; font-size: 0.72rem; }
 
-    .painting-medium {
-      color: #666;
-      font-size: 0.72rem;
-    }
+    .popup-artist em { color: #888; font-size: 0.82rem; }
+
 
     /* cluster overrides */
     .marker-cluster-small,
@@ -199,6 +190,7 @@
 
   function popupHTML(a) {
     const meta = [
+      a.birth_year   ? `lived       <span>${escHtml(a.birth_year)}${a.death_year ? '–' + escHtml(a.death_year) : ''}</span>` : '',
       a.birth_place  ? `born        <span>${escHtml(a.birth_place)}</span>`  : '',
       a.citizenship  ? `citizenship <span>${escHtml(a.citizenship)}</span>`  : '',
       a.movement     ? `movement    <span>${escHtml(a.movement)}</span>`     : '',
@@ -208,7 +200,7 @@
       const link = p.museum_url
         ? `<a class="painting-link" href="${p.museum_url}" target="_blank" rel="noopener">${escHtml(p.title || 'Untitled')}</a>`
         : `<span>${escHtml(p.title || 'Untitled')}</span>`;
-      const date   = p.date   ? ` <em>${escHtml(p.date)}</em>`              : '';
+      const date   = p.date   ? ` <em>${escHtml(p.date)}</em>` : '';
       const medium = p.medium ? `<div class="painting-medium">${escHtml(p.medium.slice(0, 60))}</div>` : '';
       return `<div class="painting-row">${link}${date}${medium}</div>`;
     }).join('');
@@ -238,7 +230,7 @@
       const totalPaintings = artists.reduce((n, a) => n + a.paintings.length, 0);
       artists.forEach(a => {
         const marker = L.marker([a.lat, a.lng]);
-        marker.bindPopup(() => popupHTML(a), { maxWidth: 320, maxHeight: 400 });
+        marker.bindPopup(() => popupHTML(a), { maxWidth: 320 });
         markers.addLayer(marker);
       });
       map.addLayer(markers);

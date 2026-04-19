@@ -1,6 +1,6 @@
 """
 Export artmap.duckdb -> data/paintings.json for the static frontend.
-Output is grouped by artist: each entry is one artist + their paintings list.
+Grouped by artist: each entry is one artist + their paintings list.
 Run after fetch_paintings.py / enrich_locations.py.
 """
 
@@ -12,8 +12,6 @@ import duckdb
 DB_PATH = "artmap.duckdb"
 OUT_PATH = os.path.join("data", "paintings.json")
 
-# Matches trailing parenthetical with a year, "ca.", or "century":
-#   "Style of X (ca. 1800-1810)"  |  "Workshop of X (1510)"  |  "X (late 15th century)"
 _DATE_IN_ARTIST = re.compile(
     r'\s*\(([^)]*(?:\d{3,4}|ca\.|century)[^)]*)\)\s*$',
     re.IGNORECASE,
@@ -21,7 +19,6 @@ _DATE_IN_ARTIST = re.compile(
 
 
 def clean_artist_date(artist: str, date: str) -> tuple[str, str]:
-    """Move a parenthetical date out of the artist field if date is missing."""
     if date:
         return artist, date
     m = _DATE_IN_ARTIST.search(artist)
@@ -38,12 +35,15 @@ def main():
     existing_cols = {r[0] for r in con.execute(
         "SELECT column_name FROM information_schema.columns WHERE table_name = 'paintings'"
     ).fetchall()}
-    citizenship_col = "citizenship" if "citizenship" in existing_cols else "'' AS citizenship"
+
+    def col(name):
+        return name if name in existing_cols else f"'' AS {name}"
 
     rows = con.execute(f"""
         SELECT
             object_id, title, artist, date,
-            place_of_origin, medium, period, {citizenship_col},
+            place_of_origin, medium, period,
+            {col('citizenship')}, {col('birth_year')}, {col('death_year')},
             thumbnail, museum, museum_url, lat, lng
         FROM paintings
         WHERE lat IS NOT NULL AND lng IS NOT NULL
@@ -53,11 +53,11 @@ def main():
 
     cols = [
         "object_id", "title", "artist", "date",
-        "place_of_origin", "medium", "period", "citizenship",
+        "place_of_origin", "medium", "period",
+        "citizenship", "birth_year", "death_year",
         "thumbnail", "museum", "museum_url", "lat", "lng",
     ]
 
-    # Group by artist + coordinates (same artist may appear at same point)
     groups: dict[tuple, dict] = {}
     for row in rows:
         p = dict(zip(cols, row))
@@ -67,6 +67,8 @@ def main():
         if key not in groups:
             groups[key] = {
                 "artist":      p["artist"],
+                "birth_year":  p["birth_year"] or "",
+                "death_year":  p["death_year"] or "",
                 "birth_place": p["place_of_origin"] or "",
                 "citizenship": p["citizenship"] or "",
                 "movement":    p["period"] or "",
