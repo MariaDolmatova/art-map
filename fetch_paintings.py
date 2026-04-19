@@ -21,7 +21,7 @@ NOMINATIM_HEADERS = {"User-Agent": "ArtMapApp/1.0 (maria.tathue@gmail.com)"}
 CSV_PATH = "MetObjects.csv"
 DB_PATH = "artmap.duckdb"
 TARGET_DEPT = "European Paintings"
-TEST_BATCH = 200
+TEST_BATCH = 10_000  # full department (~2600 European Paintings rows)
 
 # Maps Met nationality strings → geocodable place names.
 # The first token before a comma is used as the lookup key.
