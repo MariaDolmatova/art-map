@@ -44,13 +44,164 @@
       font-family: monospace;
     }
 
-    #map {
+    /* ── Map wrap ── */
+    #map-wrap {
       flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
     }
 
     #map .leaflet-tile-pane {
       opacity: 0.8;
     }
+
+
+    /* ── Sidebar ── */
+    #sidebar-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: #111;
+      border: 1px solid #444;
+      border-radius: 6px;
+      color: #e8d8b0;
+      width: 34px;
+      height: 34px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: left 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #sidebar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    /* Single panel: slides in, 60vh tall */
+    #sidebar-panel {
+      pointer-events: all;
+      width: 200px;
+      max-height: 60vh;
+      transition: transform 0.25s ease, width 0.25s ease;
+      background: rgba(15,15,15,0.97);
+      border: 1px solid #333;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateX(-220px);
+      margin-top: 44px;
+    }
+
+    #sidebar.open #sidebar-panel,
+    #sidebar.expanded #sidebar-panel {
+      transform: translateX(0);
+    }
+
+    #sidebar.expanded #sidebar-panel {
+      width: 600px;
+    }
+
+    #sidebar.open #sidebar-btn,
+    #sidebar.expanded #sidebar-btn {
+      left: 210px;
+    }
+
+    /* Nav list */
+    #sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    #sidebar.expanded #sidebar-nav { display: none; }
+
+    /* Content view */
+    #sidebar-view {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    #sidebar.expanded #sidebar-view { display: flex; }
+
+    .sidebar-opt {
+      background: none;
+      border: none;
+      border-bottom: 1px solid #222;
+      color: #bbb;
+      padding: 13px 16px;
+      text-align: left;
+      cursor: pointer;
+      font-family: 'Georgia', serif;
+      font-size: 0.83rem;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .sidebar-opt:hover { background: #1e1e1e; color: #e8d8b0; }
+
+    #sidebar-back {
+      background: none;
+      border: none;
+      border-bottom: 1px solid #2a2a2a;
+      color: #777;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      text-align: left;
+      flex-shrink: 0;
+    }
+    #sidebar-back:hover { color: #ccc; }
+
+    #sidebar-content {
+      padding: 14px;
+      overflow-y: auto;
+      flex: 1;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: #bbb;
+    }
+
+    #sidebar-content h3 {
+      color: #e8d8b0;
+      font-size: 0.88rem;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #333;
+      font-weight: normal;
+      letter-spacing: 0.04em;
+    }
+
+    #sidebar-content p { margin-bottom: 8px; }
+    #sidebar-content a { color: #c9a96e; }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 5px 0;
+      border-bottom: 1px solid #1e1e1e;
+      gap: 8px;
+    }
+
+    .data-row:last-child { border-bottom: none; }
+
+    .data-row .label { color: #ccc; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .data-row .val   { color: #888; font-family: monospace; font-size: 0.75rem; flex-shrink: 0; }
+    .data-row .rank  { color: #c9a96e; font-family: monospace; font-size: 0.75rem; width: 20px; flex-shrink: 0; }
 
     /* ── Popup ── */
     .leaflet-popup-content-wrapper {
@@ -148,6 +299,93 @@
 
     .popup-artist em { color: #888; font-size: 0.82rem; }
 
+    /* ── Movement filters ── */
+    #movement-filters {
+      position: absolute;
+      bottom: 30px;
+      right: 10px;
+      z-index: 998;
+      background: rgba(15,15,15,0.95);
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px 12px 12px;
+      width: 190px;
+      max-height: 60vh;
+      overflow-y: auto;
+      font-family: 'Georgia', serif;
+    }
+
+    #mf-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #333;
+    }
+
+    #mf-title {
+      color: #e8d8b0;
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+    }
+
+    #mf-toggles {
+      font-size: 0.68rem;
+      color: #666;
+      display: flex;
+      gap: 6px;
+    }
+
+    #mf-toggles button {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 0.68rem;
+      padding: 0;
+    }
+
+    #mf-toggles button:hover { color: #c9a96e; }
+
+    .mf-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 4px 0;
+      border-bottom: 1px solid #1a1a1a;
+      cursor: pointer;
+    }
+
+    .mf-item:last-child { border-bottom: none; }
+
+    .mf-item input[type=checkbox] {
+      accent-color: #c9a96e;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .mf-item label {
+      color: #bbb;
+      font-size: 0.78rem;
+      cursor: pointer;
+      user-select: none;
+      line-height: 1.3;
+    }
+
+    .mf-item.unchecked label { color: #444; }
+
+    /* Zoom + layer switcher side by side in top-right */
+    .leaflet-top.leaflet-right {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+    }
+
+    .leaflet-top.leaflet-right .leaflet-control {
+      float: none;
+      margin-bottom: 0;
+    }
 
     /* cluster overrides */
     .marker-cluster-small,
@@ -254,7 +492,37 @@
   <span id="count">loading…</span>
 </header>
 
-<div id="map"></div>
+<div id="map-wrap">
+  <div id="map"></div>
+
+  <div id="movement-filters">
+    <div id="mf-header">
+      <span id="mf-title">Style filter</span>
+      <div id="mf-toggles">
+        <button id="mf-all">all</button>
+        <button id="mf-none">none</button>
+      </div>
+    </div>
+    <div id="mf-list"></div>
+  </div>
+
+  <button id="sidebar-btn" title="Menu">☰</button>
+
+  <div id="sidebar">
+    <div id="sidebar-panel">
+      <div id="sidebar-nav">
+        <button class="sidebar-opt" data-panel="about">📖 About the project</button>
+        <button class="sidebar-opt" data-panel="movements">🎨 Art movements</button>
+        <button class="sidebar-opt" data-panel="countries">🌍 Info per country</button>
+        <button class="sidebar-opt" data-panel="top10">🏆 Top 10 countries</button>
+      </div>
+      <div id="sidebar-view">
+        <button id="sidebar-back">← back</button>
+        <div id="sidebar-content"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="timeline">
   <div id="timeline-label">
@@ -274,7 +542,9 @@
     center: [48, 14],
     zoom: 4,
     preferCanvas: true,
+    zoomControl: false,
   });
+  L.control.zoom({ position: 'topright' }).addTo(map);
 
   const realistic = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -299,6 +569,20 @@
     maxClusterRadius: 60,
   });
 
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // Strip leading zeros from year-like numbers: "0800" → "800", "0800-0900" → "800-900"
+  function formatDate(s) {
+    if (!s) return '';
+    return String(s).replace(/\b0+(\d)/g, '$1');
+  }
+
   function popupHTML(a) {
     const meta = [
       a.birth_year   ? `lived       <span>${escHtml(a.birth_year)}${a.death_year ? '–' + escHtml(a.death_year) : ''}</span>` : '',
@@ -311,7 +595,7 @@
       const link = p.museum_url
         ? `<a class="painting-link" href="${p.museum_url}" target="_blank" rel="noopener">${escHtml(p.title || 'Untitled')}</a>`
         : `<span>${escHtml(p.title || 'Untitled')}</span>`;
-      const date   = p.date   ? ` <em>${escHtml(p.date)}</em>` : '';
+      const date   = p.date   ? ` <em>${escHtml(formatDate(p.date))}</em>` : '';
       const medium = p.medium ? `<div class="painting-medium">${escHtml(p.medium.slice(0, 60))}</div>` : '';
       return `<div class="painting-row">${link}${date}${medium}</div>`;
     }).join('');
@@ -325,6 +609,7 @@
   }
 
   const MOVEMENT_EMOJI = {
+    // European movements
     'baroque':              '🎭',
     'impressionism':        '🌸',
     'impressionist':        '🌸',
@@ -341,14 +626,43 @@
     'mannerism':            '🌀',
     'symbolism':            '🔮',
     'post-impressionism':   '⭐',
+    'neo-impressionism':    '✨',
+    'pointillism':          '🔵',
+    'divisionism':          '🔵',
     'expressionism':        '💥',
+    'neo-expressionism':    '💢',
     'surrealism':           '🫧',
     'cubism':               '🔲',
     'abstract':             '🔷',
+    'color field':          '🌈',
+    'action painting':      '🖌️',
+    'fauvism':              '🦁',
     'gothic':               '⛪',
+    'classicism':           '🏺',
     'orientalism':          '🌙',
     'naturalism':           '🌿',
     'pre-raphaelite':       '🌹',
+    'barbizon':             '🌲',
+    'sienese':              '🕍',
+    'netherlandish':        '🪟',
+    'academic':             '🎓',
+    'les nabis':            '🌈',
+    'pop art':              '🎯',
+    'op art':               '👁️',
+    'dada':                 '🃏',
+    'modernism':            '⚡',
+    'modern art':           '⚡',
+    'contemporary':         '🔮',
+    'social realism':       '👷',
+    'ashcan':               '🏙️',
+    // East Asian periods
+    'edo period':           '🏯',
+    'meiji period':         '⛩️',
+    'muromachi period':     '⚔️',
+    'song dynasty':         '🎋',
+    'ming dynasty':         '🏮',
+    'qing dynasty':         '🐉',
+    'yuan dynasty':         '🏹',
   };
 
   function movementEmojis(movement) {
@@ -364,35 +678,24 @@
     return emojis.length ? [...new Set(emojis)].join('') : '🎨';
   }
 
-  function escHtml(s) {
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
-  // Parse the last plausible year from a date string, for use as the
-  // "latest possible" date when filtering. Handles:
-  //   "ca. 1801–17"  → 1817  (abbreviated end year, expands using century of start)
-  //   "1700–1750"    → 1750  (last full year)
-  //   "ca. 1500"     → 1500  (single year)
+  // Parse the latest plausible year from a date string for timeline filtering.
+  // Handles: "ca. 1801-17" → 1817, "800" → 800, "15th century" → 1450
   function parseYear(dateStr) {
     const s = String(dateStr);
 
-    // Expand abbreviated end year: "1801–17" or "1801-17" → 1817
+    // Expand abbreviated end year: "1801-17" → 1817
     const abbrev = s.match(/(\d{4})[–\-](\d{2})(?!\d)/);
     if (abbrev) {
       const expanded = parseInt(abbrev[1].slice(0, 2) + abbrev[2]);
-      if (expanded >= 1000 && expanded <= 2026) return expanded;
+      if (expanded >= 100 && expanded <= 2026) return expanded;
     }
 
-    // Otherwise return the last valid 4-digit year found
-    const all = [...s.matchAll(/\d{4}/g)]
+    // All 4-digit years
+    const all4 = [...s.matchAll(/\d{4}/g)]
       .map(m => parseInt(m[0]))
-      .filter(y => y >= 1000 && y <= 2026);
+      .filter(y => y >= 100 && y <= 2026);
 
-    // "early/mid/late Nth century" or "early/mid/late 1500s"
+    // "early/mid/late Nth century"
     const century = s.match(/\b(early|mid|late)?\s*(\d{1,2})(?:st|nd|rd|th)?\s*century\b/i);
     if (century) {
       const base = (parseInt(century[2]) - 1) * 100;
@@ -400,6 +703,7 @@
       return base + offset;
     }
 
+    // "early/mid/late 1500s"
     const thousands = s.match(/\b(early|mid|late)?\s*(\d{3,4})s\b/i);
     if (thousands) {
       const base = parseInt(thousands[2]);
@@ -407,9 +711,195 @@
       return base + offset;
     }
 
-    return all.length ? all[all.length - 1] : null;
+    if (all4.length) return all4[all4.length - 1];
+
+    // Fall back to 3-digit years (medieval works like "800", "965")
+    const all3 = [...s.matchAll(/\b(\d{3})\b/g)]
+      .map(m => parseInt(m[0]))
+      .filter(y => y >= 100 && y <= 999);
+    return all3.length ? all3[all3.length - 1] : null;
   }
 
+  // ── Movement categories ──────────────────────────────────────────────────
+  const MOVEMENT_CATEGORIES = [
+    { id: 'medieval',      label: '⛪ Medieval & Gothic' },
+    { id: 'renaissance',   label: '🏛️ Renaissance' },
+    { id: 'baroque',       label: '🎭 Baroque' },
+    { id: 'rococo',        label: '🎀 Rococo & Neoclassicism' },
+    { id: 'romantic',      label: '🌙 Romanticism & Realism' },
+    { id: 'impressionism', label: '🌸 Impressionism' },
+    { id: 'postimpr',      label: '⭐ Post-Impressionism' },
+    { id: 'modernabstract',label: '🔷 Modern & Abstract' },
+    { id: 'eastasian',     label: '🏯 East Asian' },
+    { id: 'other',         label: '🎨 Other / Unknown' },
+  ];
+
+  function classifyMovement(mov) {
+    const m = mov.trim().toLowerCase();
+    if (!m) return 'other';
+    // East Asian periods & dynasties — check before generic terms
+    if (/edo|meiji|muromachi|heian|kamakura|momoyama|azuchi/.test(m)) return 'eastasian';
+    if (/qing|ming|yuan|song dynasty|tang dynasty|han dynasty/.test(m)) return 'eastasian';
+    if (/dynasty|japanese art|chinese art|korean art/.test(m)) return 'eastasian';
+    // European historical
+    if (/gothic|sienese|byzantine|romanesque|medieval/.test(m)) return 'medieval';
+    if (/renaissance|mannerism|netherlandish/.test(m)) return 'renaissance';
+    if (/baroque|dutch golden age/.test(m)) return 'baroque';
+    if (/rococo|neoclassic|classicism|academic/.test(m)) return 'rococo';
+    // 19th century
+    if (/romantic|barbizon|naturalism|ashcan|orientalism|realism/.test(m)) return 'romantic';
+    // Impressionism — post- must come before plain impressionism
+    if (/post.impressi|symbolism|les nabis|pre.raphaelite|fauvism|nabis/.test(m)) return 'postimpr';
+    if (/impressioni|pointillism|divisionism/.test(m)) return 'impressionism';
+    // Modern
+    if (/expressionism|cubism|abstract|surrealism|dada|modernism|modern art|pop art|op art|contemporary|color field|action painting/.test(m)) return 'modernabstract';
+    return 'other';
+  }
+
+  function buildMovementFilters(artists, applyFilter) {
+    // Count paintings per broad category
+    const counts = Object.fromEntries(MOVEMENT_CATEGORIES.map(c => [c.id, 0]));
+    artists.forEach(a => {
+      a._categories.forEach(cat => { counts[cat] += a.paintings.length; });
+    });
+
+    const list = document.getElementById('mf-list');
+    list.innerHTML = MOVEMENT_CATEGORIES.map(cat => `
+      <div class="mf-item" id="mf-wrap-${cat.id}">
+        <input type="checkbox" id="mf-${cat.id}" checked>
+        <label for="mf-${cat.id}">${cat.label} <span style="color:#555">(${counts[cat.id]})</span></label>
+      </div>
+    `).join('');
+
+    // Dim label when unchecked
+    list.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        cb.closest('.mf-item').classList.toggle('unchecked', !cb.checked);
+        applyFilter();
+      });
+    });
+
+    document.getElementById('mf-all').addEventListener('click', () => {
+      list.querySelectorAll('input').forEach(cb => { cb.checked = true; cb.closest('.mf-item').classList.remove('unchecked'); });
+      applyFilter();
+    });
+    document.getElementById('mf-none').addEventListener('click', () => {
+      list.querySelectorAll('input').forEach(cb => { cb.checked = false; cb.closest('.mf-item').classList.add('unchecked'); });
+      applyFilter();
+    });
+  }
+
+  function getCheckedCategories() {
+    return new Set(
+      MOVEMENT_CATEGORIES
+        .filter(c => document.getElementById(`mf-${c.id}`)?.checked)
+        .map(c => c.id)
+    );
+  }
+
+  // Shared state for live Top 10 — set by applyFilter once data loads
+  let currentVisible = [];
+
+  function top10HTML(subset) {
+    const counts = {};
+    subset.forEach(a => {
+      const raw = a.birth_place || a.citizenship || '';
+      const country = raw.includes(',') ? raw.split(',').pop().trim() : raw.trim();
+      if (country) counts[country] = (counts[country] || 0) + a.paintings.length;
+    });
+    const rows = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([c, n], i) => `<div class="data-row"><span class="rank">${i + 1}.</span><span class="label">${escHtml(c)}</span><span class="val">${n}</span></div>`)
+      .join('');
+    return `<h3>Top 10 Countries</h3>${rows || '<p style="color:#666">No data</p>'}`;
+  }
+
+  // ── Sidebar ──────────────────────────────────────────────────────────────
+  const sidebarEl      = document.getElementById('sidebar');
+  const sidebarBtn     = document.getElementById('sidebar-btn');
+  const sidebarOpts    = document.querySelectorAll('.sidebar-opt');
+  const sidebarBack    = document.getElementById('sidebar-back');
+  const sidebarContent = document.getElementById('sidebar-content');
+
+  const panelData = {
+    about: `
+      <h3>About Art Map</h3>
+      <p>A visual exploration of paintings from the Metropolitan Museum of Art, plotted by each artist's birthplace.</p>
+      <p>Data sourced from the <a href="https://github.com/metmuseum/openaccess" target="_blank">Met Open Access</a> dataset, enriched with artist biographies from <a href="https://www.wikidata.org" target="_blank">Wikidata</a>.</p>
+      <p>Use the timeline slider at the bottom to filter by year. Click any marker to explore the artist's works.</p>
+    `,
+    movements: '<h3>Art Movements</h3><p style="color:#666">Loading…</p>',
+    countries: '<h3>By Country</h3><p style="color:#666">Loading…</p>',
+    top10:     '<h3>Top 10 Countries</h3><p style="color:#666">Loading…</p>',
+  };
+
+  function buildSidebarData(artists) {
+    // Movements by painting count
+    const movCounts = {};
+    artists.forEach(a => {
+      if (!a.movement) return;
+      a.movement.split(';').forEach(m => {
+        const key = m.trim();
+        if (key) movCounts[key] = (movCounts[key] || 0) + a.paintings.length;
+      });
+    });
+    const movRows = Object.entries(movCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 30)
+      .map(([m, n]) => `<div class="data-row"><span class="label">${movementEmojis(m)} ${escHtml(m)}</span><span class="val">${n}</span></div>`)
+      .join('');
+    panelData.movements = `<h3>Art Movements</h3>${movRows || '<p style="color:#666">No data</p>'}`;
+
+    // Countries — extract from birth_place last segment or citizenship
+    const countryCounts = {};
+    artists.forEach(a => {
+      const raw = a.birth_place || a.citizenship || '';
+      const country = raw.includes(',') ? raw.split(',').pop().trim() : raw.trim();
+      if (country) countryCounts[country] = (countryCounts[country] || 0) + a.paintings.length;
+    });
+
+    const sorted = Object.entries(countryCounts).sort((a, b) => b[1] - a[1]);
+
+    panelData.countries = `<h3>By Country</h3>` + sorted
+      .map(([c, n]) => `<div class="data-row"><span class="label">${escHtml(c)}</span><span class="val">${n}</span></div>`)
+      .join('');
+
+    panelData.top10 = `<h3>Top 10 Countries</h3>` + sorted
+      .slice(0, 10)
+      .map(([c, n], i) => `<div class="data-row"><span class="rank">${i + 1}.</span><span class="label">${escHtml(c)}</span><span class="val">${n}</span></div>`)
+      .join('');
+  }
+
+  sidebarBtn.addEventListener('click', () => {
+    const isOpen = sidebarEl.classList.contains('open') || sidebarEl.classList.contains('expanded');
+    if (isOpen) {
+      sidebarEl.classList.remove('open', 'expanded');
+      sidebarBtn.textContent = '☰';
+      sidebarOpts.forEach(b => b.classList.remove('active'));
+    } else {
+      sidebarEl.classList.add('open');
+      sidebarBtn.textContent = '✕';
+    }
+  });
+
+  sidebarOpts.forEach(btn => {
+    btn.addEventListener('click', () => {
+      sidebarOpts.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const panel = btn.dataset.panel;
+      sidebarContent.innerHTML = panel === 'top10'
+        ? top10HTML(currentVisible)
+        : (panelData[panel] || '');
+      sidebarEl.classList.add('expanded');
+    });
+  });
+
+  sidebarBack.addEventListener('click', () => {
+    sidebarEl.classList.remove('expanded');
+  });
+
+  // ── Timeline ─────────────────────────────────────────────────────────────
   const sliderFrom = document.getElementById('slider-from');
   const sliderTo   = document.getElementById('slider-to');
   const labelFrom  = document.getElementById('year-from');
@@ -427,23 +917,32 @@
     fill.style.width = (right - left) + '%';
   }
 
+  // ── Data load ─────────────────────────────────────────────────────────────
   fetch('data/paintings.json')
     .then(r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.json();
     })
     .then(artists => {
-      // Pre-compute year range per artist from painting dates.
-      // For paintings with no date, fall back to years in the artist name, then death/birth year.
+      // Pre-compute year range and broad movement categories per artist.
       artists.forEach(a => {
-        const est_date = parseInt(a.death_year || a.birth_year) || null;
+        const est_date   = parseInt(a.death_year || a.birth_year) || null;
         const artistYear = parseYear(a.artist);
-        const years = a.paintings.map(p => parseYear(p.date) ?? artistYear ?? est_date).filter(y => y !== null);
+        const years = a.paintings
+          .map(p => parseYear(p.date) ?? artistYear ?? est_date)
+          .filter(y => y !== null);
         a._minYear = years.length ? Math.min(...years) : null;
         a._maxYear = years.length ? Math.max(...years) : null;
+
+        // Broad category tags
+        const movs = (a.movement || '').split(';').map(m => m.trim()).filter(Boolean);
+        const cats = movs.length
+          ? [...new Set(movs.map(classifyMovement))]
+          : ['other'];
+        a._categories = cats;
       });
 
-      // Find data range for slider bounds
+      // Slider bounds from data
       const allYears = artists.flatMap(a => [a._minYear, a._maxYear]).filter(Boolean);
       const dataMin  = Math.min(...allYears);
       const dataMax  = 2026;
@@ -454,8 +953,12 @@
       labelTo.textContent   = dataMax;
       updateFill();
 
+      // Build sidebar panel data and movement filter checkboxes
+      buildSidebarData(artists);
+      buildMovementFilters(artists, applyFilter);
+
       // Build markers
-      const markerMap = new Map(); // artist index → marker
+      const markerMap = new Map();
       artists.forEach((a, i) => {
         const emoji = movementEmojis(a.movement);
         const icon = L.divIcon({
@@ -471,6 +974,8 @@
       });
       map.addLayer(markers);
 
+      currentVisible = artists;
+
       function applyFilter() {
         const from = parseInt(sliderFrom.value);
         const to   = parseInt(sliderTo.value);
@@ -480,21 +985,30 @@
 
         markers.clearLayers();
         const fullRange = from === dataMin && to === dataMax;
+        const checkedCats = getCheckedCategories();
         let visible = 0, paintings = 0;
+        const visibleArtists = [];
         artists.forEach((a, i) => {
-          // No date data → only show when slider is at full range (unfiltered)
-          // Has date data → show only if the painting's year range overlaps [from, to]
           const inRange = fullRange
             ? true
-            : a._minYear <= to && (a._maxYear === null || a._maxYear >= from)
-          if (inRange) {
+            : a._minYear !== null && a._minYear <= to && a._maxYear >= from;
+          const inCat = a._categories.some(c => checkedCats.has(c));
+          if (inRange && inCat) {
             markers.addLayer(markerMap.get(i));
             visible++;
             paintings += a.paintings.length;
+            visibleArtists.push(a);
           }
         });
+        currentVisible = visibleArtists;
         document.getElementById('count').textContent =
           `${visible} artists · ${paintings} paintings`;
+
+        // Refresh Top 10 panel if it's currently open
+        const activeBtn = document.querySelector('.sidebar-opt.active');
+        if (activeBtn?.dataset.panel === 'top10') {
+          sidebarContent.innerHTML = top10HTML(currentVisible);
+        }
       }
 
       sliderFrom.addEventListener('input', () => {
