@@ -49,7 +49,7 @@
     }
 
     #map .leaflet-tile-pane {
-      opacity: 0.65;
+      opacity: 0.8;
     }
 
     /* ── Popup ── */
@@ -156,12 +156,12 @@
       background-clip: padding-box;
     }
 
-    .marker-cluster-small       { background-color: rgba(181, 130, 60, 0.5); }
-    .marker-cluster-small div   { background-color: rgba(181, 130, 60, 0.9); color: #fff; }
+    .marker-cluster-small       { background-color: rgba(197, 162, 47, 0.5); }
+    .marker-cluster-small div   { background-color: rgba(197, 162, 47, 0.9); color: #fff; }
     .marker-cluster-medium      { background-color: rgba(160, 90,  40, 0.5); }
     .marker-cluster-medium div  { background-color: rgba(160, 90,  40, 0.9); color: #fff; }
-    .marker-cluster-large       { background-color: rgba(124, 15, 48, 0.5); }
-    .marker-cluster-large div   { background-color: rgba(124, 15, 48, 0.9); color: #fff; }
+    .marker-cluster-large       { background-color: rgba(145, 14, 53, 0.5); }
+    .marker-cluster-large div   { background-color: rgba(145, 14, 53, 0.9); color: #fff; }
 
     .emoji-marker {
       font-size: 18px;
@@ -372,10 +372,42 @@
       .replace(/"/g, '&quot;');
   }
 
-  // Parse the first 4-digit year from a date string like "ca. 1650", "1700–1750"
+  // Parse the last plausible year from a date string, for use as the
+  // "latest possible" date when filtering. Handles:
+  //   "ca. 1801–17"  → 1817  (abbreviated end year, expands using century of start)
+  //   "1700–1750"    → 1750  (last full year)
+  //   "ca. 1500"     → 1500  (single year)
   function parseYear(dateStr) {
-    const m = String(dateStr).match(/\d{4}/);
-    return m ? parseInt(m[0]) : null;
+    const s = String(dateStr);
+
+    // Expand abbreviated end year: "1801–17" or "1801-17" → 1817
+    const abbrev = s.match(/(\d{4})[–\-](\d{2})(?!\d)/);
+    if (abbrev) {
+      const expanded = parseInt(abbrev[1].slice(0, 2) + abbrev[2]);
+      if (expanded >= 1000 && expanded <= 2026) return expanded;
+    }
+
+    // Otherwise return the last valid 4-digit year found
+    const all = [...s.matchAll(/\d{4}/g)]
+      .map(m => parseInt(m[0]))
+      .filter(y => y >= 1000 && y <= 2026);
+
+    // "early/mid/late Nth century" or "early/mid/late 1500s"
+    const century = s.match(/\b(early|mid|late)?\s*(\d{1,2})(?:st|nd|rd|th)?\s*century\b/i);
+    if (century) {
+      const base = (parseInt(century[2]) - 1) * 100;
+      const offset = { early: 15, mid: 50, late: 83 }[century[1]?.toLowerCase()] ?? 50;
+      return base + offset;
+    }
+
+    const thousands = s.match(/\b(early|mid|late)?\s*(\d{3,4})s\b/i);
+    if (thousands) {
+      const base = parseInt(thousands[2]);
+      const offset = { early: 15, mid: 50, late: 83 }[thousands[1]?.toLowerCase()] ?? 50;
+      return base + offset;
+    }
+
+    return all.length ? all[all.length - 1] : null;
   }
 
   const sliderFrom = document.getElementById('slider-from');
@@ -401,9 +433,12 @@
       return r.json();
     })
     .then(artists => {
-      // Pre-compute min year per artist
+      // Pre-compute year range per artist from painting dates.
+      // For paintings with no date, fall back to years in the artist name, then death/birth year.
       artists.forEach(a => {
-        const years = a.paintings.map(p => parseYear(p.date)).filter(y => y !== null);
+        const est_date = parseInt(a.death_year || a.birth_year) || null;
+        const artistYear = parseYear(a.artist);
+        const years = a.paintings.map(p => parseYear(p.date) ?? artistYear ?? est_date).filter(y => y !== null);
         a._minYear = years.length ? Math.min(...years) : null;
         a._maxYear = years.length ? Math.max(...years) : null;
       });
@@ -444,10 +479,14 @@
         updateFill();
 
         markers.clearLayers();
+        const fullRange = from === dataMin && to === dataMax;
         let visible = 0, paintings = 0;
         artists.forEach((a, i) => {
-          const inRange = a._minYear === null
-            || (a._minYear <= to && (a._maxYear === null || a._maxYear >= from));
+          // No date data → only show when slider is at full range (unfiltered)
+          // Has date data → show only if the painting's year range overlaps [from, to]
+          const inRange = fullRange
+            ? true
+            : a._minYear <= to && (a._maxYear === null || a._maxYear >= from)
           if (inRange) {
             markers.addLayer(markerMap.get(i));
             visible++;

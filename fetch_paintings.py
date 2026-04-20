@@ -20,8 +20,8 @@ NOMINATIM_HEADERS = {"User-Agent": "ArtMapApp/1.0 (maria.tathue@gmail.com)"}
 
 CSV_PATH = "MetObjects.csv"
 DB_PATH = "artmap.duckdb"
-TARGET_DEPT = "European Paintings"
-TEST_BATCH = 10_000  # full department (~2600 European Paintings rows)
+TARGET_CLASSIFICATION = "Paintings"
+TEST_BATCH = 20_000  # all paintings across all departments
 
 # Maps Met nationality strings → geocodable place names.
 # The first token before a comma is used as the lookup key.
@@ -51,10 +51,20 @@ NATIONALITY_TO_PLACE = {
     "Finnish":       "Finland",
     "Scottish":      "Scotland, United Kingdom",
     "Armenian":      "Armenia",
+    "American":      "United States",
+    "Mexican":       "Mexico",
+    "Canadian":      "Canada",
+    "Japanese":      "Japan",
+    "Chinese":       "China",
+    "Korean":        "South Korea",
+    "Indian":        "India",
+    "Brazilian":     "Brazil",
+    "Peruvian":      "Peru",
+    "Australian":    "Australia",
 }
 
 
-# ── Download ────────────────────────────────────────────────────────────────
+# -- Download ----------------------------------------------------------------
 
 def download_csv():
     print(f"Downloading Met Open Access CSV (~260 MB) → {CSV_PATH}")
@@ -73,7 +83,7 @@ def download_csv():
     print(f"\nDownload complete: {CSV_PATH}\n")
 
 
-# ── Parse ───────────────────────────────────────────────────────────────────
+# -- Parse -------------------------------------------------------------------
 
 def build_place(row: dict) -> tuple[str, str] | None:
     """Return (place_of_origin, geocode_query) or None if no location data.
@@ -101,7 +111,19 @@ def build_place(row: dict) -> tuple[str, str] | None:
     place = NATIONALITY_TO_PLACE.get(primary, primary)  # map or pass through as-is
     return nat, place  # store raw nationality, geocode the mapped place
 
-
+def build_date(row: dict) -> str | None:
+    date = row.get("Object Date", "").strip()
+    if date:
+        return date
+    b_date = row.get("Object Begin Date", "").strip()
+    e_date = row.get("Object End Date", "").strip()
+    if b_date and e_date:
+        return b_date + '-' + e_date
+    if b_date:
+        return b_date
+    if e_date:
+        return e_date
+    
 def parse_csv(path: str, target: int) -> list[dict]:
     records = []
     scanned = 0
@@ -109,10 +131,11 @@ def parse_csv(path: str, target: int) -> list[dict]:
     with open(path, encoding="utf-8", errors="replace") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            if row.get("Department", "").strip() != TARGET_DEPT:
+            if row.get("Classification", "").strip() != TARGET_CLASSIFICATION:
                 continue
             scanned += 1
             result = build_place(row)
+            date = build_date(row)
             if result is None:
                 continue
             place_of_origin, geocode_query = result
@@ -120,7 +143,8 @@ def parse_csv(path: str, target: int) -> list[dict]:
                 "object_id":      row.get("Object ID", "").strip(),
                 "title":          row.get("Title", "").strip(),
                 "artist":         row.get("Artist Display Name", "").strip(),
-                "date":           row.get("Object Date", "").strip(),
+                "artist_bio":     row.get("Artist Display Bio", "").strip(),
+                "date":           date,
                 "culture":        row.get("Culture", "").strip(),
                 "place_of_origin": place_of_origin,
                 "geocode_query":  geocode_query,
@@ -135,15 +159,15 @@ def parse_csv(path: str, target: int) -> list[dict]:
                 "museum_url":     row.get("Link Resource", "").strip(),
             })
             if len(records) % 50 == 0:
-                print(f"  {len(records):>3} collected (scanned {scanned} European Paintings rows)", flush=True)
+                print(f"  {len(records):>3} collected (scanned {scanned} Paintings rows)", flush=True)
             if len(records) >= target:
                 break
 
-    print(f"\nParsed {scanned} European Paintings rows → kept {len(records)} with place of origin.")
+    print(f"\nParsed {scanned} Paintings rows -> kept {len(records)} with place of origin.")
     return records
 
 
-# ── Database ────────────────────────────────────────────────────────────────
+# -- Database ----------------------------------------------------------------
 
 def init_db(con: duckdb.DuckDBPyConnection):
     con.execute("""
@@ -151,6 +175,7 @@ def init_db(con: duckdb.DuckDBPyConnection):
             object_id       VARCHAR PRIMARY KEY,
             title           VARCHAR,
             artist          VARCHAR,
+            artist_bio      VARCHAR,
             date            VARCHAR,
             culture         VARCHAR,
             place_of_origin VARCHAR,
@@ -170,7 +195,7 @@ def init_db(con: duckdb.DuckDBPyConnection):
     """)
 
 
-# ── Geocoding ───────────────────────────────────────────────────────────────
+# -- Geocoding ---------------------------------------------------------------
 
 def geocode(query: str) -> tuple[float | None, float | None]:
     try:
@@ -189,7 +214,7 @@ def geocode(query: str) -> tuple[float | None, float | None]:
     return None, None
 
 
-# ── Main ────────────────────────────────────────────────────────────────────
+# -- Main --------------------------------------------------------------------
 
 def main():
     if not os.path.exists(CSV_PATH):
@@ -198,7 +223,7 @@ def main():
         size_mb = os.path.getsize(CSV_PATH) / 1e6
         print(f"Using cached {CSV_PATH} ({size_mb:.0f} MB)\n")
 
-    print(f"Scanning CSV for European Paintings with place of origin (target: {TEST_BATCH})...")
+    print(f"Scanning CSV for Paintings with place of origin (target: {TEST_BATCH})...")
     records = parse_csv(CSV_PATH, TEST_BATCH)
 
     # Save to DuckDB
@@ -208,10 +233,10 @@ def main():
     for r in records:
         con.execute("""
             INSERT OR REPLACE INTO paintings VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL
             )
         """, [
-            r["object_id"], r["title"], r["artist"], r["date"],
+            r["object_id"], r["title"], r["artist"], r["artist_bio"], r["date"],
             r["culture"], r["place_of_origin"], r["geocode_query"],
             r["country"], r["city"], r["region"],
             r["medium"], r["period"], r["classification"],
@@ -245,12 +270,12 @@ def main():
     geocoded = con.execute("SELECT COUNT(*) FROM paintings WHERE lat IS NOT NULL").fetchone()[0]
     failed   = total - geocoded
 
-    print(f"\n{'─'*60}")
+    print(f"\n{'-'*60}")
     print(f"  Total saved :  {total}")
     print(f"  Geocoded    :  {geocoded}  ({geocoded/total*100:.1f}%)" if total else "  No rows saved.")
     print(f"  Failed/null :  {failed}")
     print(f"  Database    :  {DB_PATH}")
-    print(f"{'─'*60}")
+    print(f"{'-'*60}")
 
     print("\nSample rows:")
     rows = con.execute("""

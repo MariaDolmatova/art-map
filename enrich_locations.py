@@ -24,7 +24,7 @@ SPARQL_HEADERS = {
 BATCH_SIZE = 50  # Q-IDs per SPARQL request
 
 
-# ── Step 1: collect Wikidata URLs from CSV for our stored paintings ──────────
+# -- Step 1: collect Wikidata URLs from CSV for our stored paintings ----------
 
 def get_stored_ids(con: duckdb.DuckDBPyConnection) -> set[str]:
     return {str(r[0]) for r in con.execute("SELECT object_id FROM paintings").fetchall()}
@@ -51,7 +51,7 @@ def extract_qid(url: str) -> str | None:
     return m.group(1) if m else None
 
 
-# ── Step 2: batch-query Wikidata SPARQL ─────────────────────────────────────
+# -- Step 2: batch-query Wikidata SPARQL -------------------------------------
 
 def query_birth_places(qids: list[str]) -> dict[str, tuple]:
     """
@@ -141,7 +141,7 @@ def fetch_all_birth_places(qids: list[str]) -> dict[str, tuple]:
     return all_results
 
 
-# ── Step 3: update DB ────────────────────────────────────────────────────────
+# -- Step 3: update DB --------------------------------------------------------
 
 def main():
     con = duckdb.connect(DB_PATH)
@@ -201,11 +201,11 @@ def main():
     enriched = con.execute("SELECT COUNT(*) FROM paintings WHERE birth_place IS NOT NULL AND birth_place != ''").fetchone()[0]
     no_data  = total - updated
 
-    print(f"\n{'─'*60}")
+    print(f"\n{'-'*60}")
     print(f"  Total paintings  : {total}")
     print(f"  Updated with birth city : {updated}")
     print(f"  No Wikidata birth data  : {no_data}")
-    print(f"{'─'*60}")
+    print(f"{'-'*60}")
 
     print("\nSample enriched rows:")
     rows = con.execute("""
