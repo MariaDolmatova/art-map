@@ -1,15 +1,14 @@
 # Art Map
 
-An interactive world map of paintings from the Metropolitan Museum of Art, plotted by the artist's place of birth.
+An interactive world map of paintings from the Metropolitan Museum of Art, plotted by the artist's place of birth. 
 
 ## What it does
 
 - Displays ~7,400 paintings as emoji markers on a Leaflet map, clustered by location
-- Each marker represents an artist; clicking it shows their works with dates, medium, and links to the Met website
-- **Timeline slider** — filter paintings by year (supports dates like `ca. 1863`, `186[3?]`, `15th century`)
+- Each marker represents an artist; clicking it shows their works with dates, medium, and links to the Met website of the painting with it's picture and further information
+- **Timeline slider** — filter paintings by year (added support for dates like `ca. 1863`, `186[3?]`, `15th century` and other deciations)
 - **Style filter** — toggle art movement categories (Medieval, Renaissance, Baroque, Impressionism, etc.)
-- **Sidebar panels** — Art movements and Top 10 countries update live as you filter
-- Dark green theme, mobile-responsive
+- **Sidebar panels** — you can check different Art movements present and Top 10 countries update live as you filter
 
 ## Data pipeline
 
@@ -21,7 +20,7 @@ fetch_paintings.py → enrich_locations.py → export_json.py → data/paintings
 - Downloads the Met Open Access CSV (~318 MB, cached locally as `MetObjects.csv`)
 - Filters all rows where `Classification == "Paintings"`
 - Derives place of origin from artist nationality (e.g. `"French"` → `"France"`)
-- Geocodes unique places via Nominatim (1 req/s rate limit)
+- Geocodes unique places via Nominatim
 - Stores results in `artmap.duckdb`
 
 ### 2. `enrich_locations.py`
@@ -32,7 +31,7 @@ fetch_paintings.py → enrich_locations.py → export_json.py → data/paintings
 ### 3. `export_json.py`
 - Exports `artmap.duckdb` → `data/paintings.json`
 - Groups by artist, normalises place names (historical empires, nationality adjectives, pipe-duplicates)
-- Extracts dates from artist bios when the painting date field is missing
+- Extracts dates from artist bios when the painting date field is missing, also included peculiar data formats handling
 
 ## Setup
 
