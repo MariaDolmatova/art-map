@@ -42,7 +42,7 @@ py enrich_locations.py      # ~10–20 min (Wikidata SPARQL)
 py export_json.py
 ```
 
-Then open `index.html` in a browser (or serve locally — no build step needed).
+Then open `index.html` in a browser or serve locally.
 
 ## Data source
 
