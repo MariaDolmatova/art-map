@@ -96,11 +96,16 @@ def query_birth_places(qids: list[str]) -> dict[str, tuple]:
         if "lat" in b and qid not in coords_data:
             city    = b.get("birthPlaceLabel", {}).get("value", "")
             country = b.get("countryLabel",    {}).get("value", "")
-            label   = f"{city}, {country}" if country else city
+            # Drop raw QIDs — Wikidata returns them when no English label exists
+            if re.match(r'^Q\d+$', city):    city = ""
+            if re.match(r'^Q\d+$', country): country = ""
+            label = f"{city}, {country}" if (city and country) else (city or country)
             coords_data[qid] = (float(b["lat"]["value"]), float(b["lng"]["value"]), label)
 
         mv = b.get("movementLabel",    {}).get("value", "")
         cz = b.get("citizenshipLabel", {}).get("value", "")
+        if re.match(r'^Q\d+$', mv): mv = ""
+        if re.match(r'^Q\d+$', cz): cz = ""
         if mv and mv not in movements.get(qid, []):
             movements.setdefault(qid, []).append(mv)
         if cz and cz not in citizenships.get(qid, []):

@@ -11,6 +11,64 @@ import duckdb
 
 DB_PATH = "artmap.duckdb"
 OUT_PATH = os.path.join("data", "paintings.json")
+
+PLACE_MAP = {
+    "People's Republic of China": "China",
+    "Republic of China":    "China",
+    # Historical nationality adjectives
+    "Netherlandish":        "Netherlands",
+    "Flemish":              "Belgium",
+    "Venetian":             "Italy",
+    "Florentine":           "Italy",
+    "Neapolitan":           "Italy",
+    "Milanese":             "Italy",
+    "Sienese":              "Italy",
+    "Bolognese":            "Italy",
+    "Genoese":              "Italy",
+    "Roman":                "Italy",
+    "Bohemian":             "Czech Republic",
+    "Persian":              "Iran",
+    "Ottoman":              "Turkey",
+    # Historical empires / dynasties → modern country
+    "Qing dynasty":         "China",
+    "Ming dynasty":         "China",
+    "Yuan dynasty":         "China",
+    "Han dynasty":          "China",
+    "Tang dynasty":         "China",
+    "Song dynasty":         "China",
+    "Edo period":           "Japan",
+    "Meiji period":         "Japan",
+    "Muromachi period":     "Japan",
+    "Heian period":         "Japan",
+    "Byzantine Empire":     "Greece",
+    "Holy Roman Empire":    "Germany",
+    "Ottoman Empire":       "Turkey",
+    "Persian Empire":       "Iran",
+    "Mughal Empire":        "India",
+    "British Empire":       "United Kingdom",
+    "Roman Empire":         "Italy",
+    "Habsburg Empire":      "Austria",
+}
+
+def normalize_place(s: str) -> str:
+    if not s:
+        return s
+    # Drop raw Wikidata QIDs
+    if re.match(r'^Q\d+$', s.strip()):
+        return ""
+    # Strip "born X" → "X"
+    s = re.sub(r'(?i)^born\s+', '', s).strip()
+    # Deduplicate pipe-joined values: "Chinese|Chinese|Japanese" → "Chinese, Japan"
+    parts = list(dict.fromkeys(PLACE_MAP.get(p.strip(), p.strip()) for p in s.split("|") if p.strip()))
+    s = ", ".join(parts) if parts else s
+    # Map whole string, or if "City, Country" normalize just the country part
+    if s in PLACE_MAP:
+        return PLACE_MAP[s]
+    if ',' in s:
+        city, country = s.rsplit(',', 1)
+        country = country.strip()
+        return f"{city.strip()}, {PLACE_MAP.get(country, country)}"
+    return s
  
 
 def extract_date_from_artist(artist_bio: str) -> str | None:
@@ -83,8 +141,8 @@ def main():
                 "artist":      p["artist"],
                 "birth_year":  p["birth_year"] or "",
                 "death_year":  p["death_year"] or "",
-                "birth_place": p["place_of_origin"] or "",
-                "citizenship": p["citizenship"] or "",
+                "birth_place": normalize_place(p["place_of_origin"] or ""),
+                "citizenship": normalize_place(p["citizenship"] or ""),
                 "movement":    p["period"] or "",
                 "lat":         p["lat"],
                 "lng":         p["lng"],

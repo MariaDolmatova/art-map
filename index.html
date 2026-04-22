@@ -14,7 +14,7 @@
 
     body {
       font-family: 'Georgia', serif;
-      background: #1a1a1a;
+      background: #161d12;
       color: #f0ebe3;
       height: 100dvh;
       display: flex;
@@ -23,8 +23,8 @@
 
     header {
       padding: 12px 20px;
-      background: #111;
-      border-bottom: 1px solid #333;
+      background: #161d12;
+      border-bottom: 1px solid #212c1a;
       display: flex;
       align-items: baseline;
       gap: 16px;
@@ -57,7 +57,7 @@
     }
 
     #map .leaflet-tile-pane {
-      opacity: 0.8;
+      opacity: 0.85;
     }
 
 
@@ -67,8 +67,8 @@
       top: 10px;
       left: 10px;
       z-index: 1000;
-      background: #111;
-      border: 1px solid #444;
+      background: #171d12;
+      border: 1px solid #212c1a;
       border-radius: 6px;
       color: #e8d8b0;
       width: 34px;
@@ -95,8 +95,8 @@
       width: 200px;
       max-height: 60vh;
       transition: transform 0.25s ease, width 0.25s ease;
-      background: rgba(15,15,15,0.97);
-      border: 1px solid #333;
+      background: rgba(27, 32, 20, 0.98);
+      border: 1px solid #212c1a;
       border-radius: 6px;
       display: flex;
       flex-direction: column;
@@ -151,12 +151,12 @@
       transition: background 0.15s, color 0.15s;
     }
 
-    .sidebar-opt:hover { background: #1e1e1e; color: #e8d8b0; }
+    .sidebar-opt:hover { background: #243019; color: #e8d8b0; }
 
     #sidebar-back {
       background: none;
       border: none;
-      border-bottom: 1px solid #2a2a2a;
+      border-bottom: 1px solid #161f13;
       color: #777;
       padding: 10px 14px;
       cursor: pointer;
@@ -180,7 +180,7 @@
       font-size: 0.88rem;
       margin-bottom: 10px;
       padding-bottom: 6px;
-      border-bottom: 1px solid #333;
+      border-bottom: 1px solid #e8d8b0;
       font-weight: normal;
       letter-spacing: 0.04em;
     }
@@ -193,7 +193,7 @@
       justify-content: space-between;
       align-items: baseline;
       padding: 5px 0;
-      border-bottom: 1px solid #1e1e1e;
+      border-bottom: 1px solid #242b1a;
       gap: 8px;
     }
 
@@ -205,16 +205,16 @@
 
     /* ── Popup ── */
     .leaflet-popup-content-wrapper {
-      background: #1e1e1e;
+      background: #1c2215;
       color: #f0ebe3;
       border-radius: 8px;
-      border: 1px solid #444;
+      border: 1px solid #1e2917;
       box-shadow: 0 4px 20px rgba(0,0,0,0.6);
       padding: 0;
     }
 
     .leaflet-popup-tip {
-      background: #1e1e1e;
+      background: #161d12;
     }
 
     .leaflet-popup-content {
@@ -233,7 +233,7 @@
       border-radius: 4px;
       margin-bottom: 10px;
       display: block;
-      background: #2a2a2a;
+      background: #161d12;
     }
 
     .popup-title {
@@ -278,14 +278,14 @@
       margin-top: 10px;
       max-height: 220px;
       overflow-y: auto;
-      border-top: 1px solid #333;
+      border-top: 1px solid #29361e;
       padding-top: 8px;
     }
 
     .painting-row {
       font-size: 0.8rem;
       padding: 4px 0;
-      border-bottom: 1px solid #2a2a2a;
+      border-bottom: 1px solid #29361e;
       line-height: 1.4;
     }
 
@@ -305,8 +305,8 @@
       bottom: 30px;
       right: 10px;
       z-index: 998;
-      background: rgba(15,15,15,0.95);
-      border: 1px solid #333;
+      background: rgba(24, 29, 18, 0.93);
+      border: 1px solid #212c1a;
       border-radius: 6px;
       padding: 10px 12px 12px;
       width: 190px;
@@ -318,10 +318,12 @@
     #mf-header {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
+      align-items: center;
       margin-bottom: 8px;
       padding-bottom: 6px;
-      border-bottom: 1px solid #333;
+      border-bottom: 1px solid #212c1a;
+      cursor: pointer;
+      user-select: none;
     }
 
     #mf-title {
@@ -330,9 +332,14 @@
       letter-spacing: 0.04em;
     }
 
+    #mf-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     #mf-toggles {
       font-size: 0.68rem;
-      color: #666;
       display: flex;
       gap: 6px;
     }
@@ -348,12 +355,31 @@
 
     #mf-toggles button:hover { color: #c9a96e; }
 
+    #mf-collapse-btn {
+      background: none;
+      border: none;
+      color: #aaa;
+      cursor: pointer;
+      font-size: 0.65rem;
+      padding: 0;
+      line-height: 1;
+    }
+
+    #movement-filters.collapsed #mf-list,
+    #movement-filters.collapsed #mf-toggles {
+      display: none;
+    }
+
+    #movement-filters.collapsed {
+      padding-bottom: 10px;
+    }
+
     .mf-item {
       display: flex;
       align-items: center;
       gap: 7px;
       padding: 4px 0;
-      border-bottom: 1px solid #1a1a1a;
+      border-bottom: 1px solid #131a0d;
       cursor: pointer;
     }
 
@@ -373,7 +399,44 @@
       line-height: 1.3;
     }
 
-    .mf-item.unchecked label { color: #444; }
+    .mf-item.unchecked label { color: #2a4f2c; }
+
+    /* ── Mobile ── */
+    @media (max-width: 600px) {
+      #sidebar.expanded #sidebar-panel {
+        width: calc(100vw - 20px);
+      }
+
+      #sidebar.open #sidebar-btn,
+      #sidebar.expanded #sidebar-btn {
+        left: calc(100vw - 54px);
+      }
+
+      .leaflet-popup-content {
+        width: 240px !important;
+      }
+
+      #movement-filters {
+        width: 160px;
+        bottom: 60px;
+        font-size: 0.72rem;
+      }
+
+      #movement-filters:not(.collapsed) {
+        max-height: 35vh;
+      }
+
+      .mf-item label { font-size: 0.72rem; }
+
+      #timeline {
+        padding: 8px 12px 10px;
+      }
+
+      .leaflet-top.leaflet-right {
+        flex-direction: column;
+        align-items: flex-end;
+      }
+    }
 
     /* Zoom + layer switcher side by side in top-right */
     .leaflet-top.leaflet-right {
@@ -413,8 +476,8 @@
     /* ── Timeline ── */
     #timeline {
       flex-shrink: 0;
-      background: #111;
-      border-top: 1px solid #333;
+      background: #161d12;
+      border-top: 1px solid #212c1a;
       padding: 10px 24px 14px;
       display: flex;
       flex-direction: column;
@@ -472,7 +535,7 @@
       transform: translateY(-50%);
       height: 4px;
       width: 100%;
-      background: #333;
+      background: #243a1e;
       border-radius: 2px;
       z-index: 0;
     }
@@ -498,9 +561,12 @@
   <div id="movement-filters">
     <div id="mf-header">
       <span id="mf-title">Style filter</span>
-      <div id="mf-toggles">
-        <button id="mf-all">all</button>
-        <button id="mf-none">none</button>
+      <div id="mf-right">
+        <div id="mf-toggles">
+          <button id="mf-all">all</button>
+          <button id="mf-none">none</button>
+        </div>
+        <button id="mf-collapse-btn" title="Collapse">▼</button>
       </div>
     </div>
     <div id="mf-list"></div>
@@ -513,7 +579,6 @@
       <div id="sidebar-nav">
         <button class="sidebar-opt" data-panel="about">📖 About the project</button>
         <button class="sidebar-opt" data-panel="movements">🎨 Art movements</button>
-        <button class="sidebar-opt" data-panel="countries">🌍 Info per country</button>
         <button class="sidebar-opt" data-panel="top10">🏆 Top 10 countries</button>
       </div>
       <div id="sidebar-view">
@@ -580,12 +645,12 @@
   // Strip leading zeros from year-like numbers: "0800" → "800", "0800-0900" → "800-900"
   function formatDate(s) {
     if (!s) return '';
-    return String(s).replace(/\b0+(\d)/g, '$1');
+    return String(s).replace(/(^|[\s\-–,])0+(\d)/g, '$1$2');
   }
 
   function popupHTML(a) {
     const meta = [
-      a.birth_year   ? `lived       <span>${escHtml(a.birth_year)}${a.death_year ? '–' + escHtml(a.death_year) : ''}</span>` : '',
+      a.birth_year   ? `lived       <span>${escHtml(formatDate(a.birth_year))}${a.death_year ? '–' + escHtml(formatDate(a.death_year)) : ''}</span>` : '',
       a.birth_place  ? `born        <span>${escHtml(a.birth_place)}</span>`  : '',
       a.citizenship  ? `citizenship <span>${escHtml(a.citizenship)}</span>`  : '',
       a.movement     ? `movement    <span>${escHtml(a.movement)}</span>`     : '',
@@ -681,17 +746,18 @@
   // Parse the latest plausible year from a date string for timeline filtering.
   // Handles: "ca. 1801-17" → 1817, "800" → 800, "15th century" → 1450
   function parseYear(dateStr) {
-    const s = String(dateStr);
+    // Normalize uncertainty notation: "186[3?]" → "1863", "1863?" → "1863"
+    const s = String(dateStr).replace(/\[(\d+)\??\]/g, '$1').replace(/\?/g, '');
 
     // Expand abbreviated end year: "1801-17" → 1817
-    const abbrev = s.match(/(\d{4})[–\-](\d{2})(?!\d)/);
+    const abbrev = s.match(/(\d{3,4})[–\-](\d{2})(?!\d)/);
     if (abbrev) {
       const expanded = parseInt(abbrev[1].slice(0, 2) + abbrev[2]);
       if (expanded >= 100 && expanded <= 2026) return expanded;
     }
 
-    // All 4-digit years
-    const all4 = [...s.matchAll(/\d{4}/g)]
+    // All 3- and 4-digit plausible years
+    const allYears = [...s.matchAll(/\d{3,4}/g)]
       .map(m => parseInt(m[0]))
       .filter(y => y >= 100 && y <= 2026);
 
@@ -711,13 +777,7 @@
       return base + offset;
     }
 
-    if (all4.length) return all4[all4.length - 1];
-
-    // Fall back to 3-digit years (medieval works like "800", "965")
-    const all3 = [...s.matchAll(/\b(\d{3})\b/g)]
-      .map(m => parseInt(m[0]))
-      .filter(y => y >= 100 && y <= 999);
-    return all3.length ? all3[all3.length - 1] : null;
+    return allYears.length ? allYears[allYears.length - 1] : null;
   }
 
   // ── Movement categories ──────────────────────────────────────────────────
@@ -787,6 +847,13 @@
       list.querySelectorAll('input').forEach(cb => { cb.checked = false; cb.closest('.mf-item').classList.add('unchecked'); });
       applyFilter();
     });
+
+    document.getElementById('mf-collapse-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const mf = document.getElementById('movement-filters');
+      const collapsed = mf.classList.toggle('collapsed');
+      document.getElementById('mf-collapse-btn').textContent = collapsed ? '▲' : '▼';
+    });
   }
 
   function getCheckedCategories() {
@@ -799,6 +866,23 @@
 
   // Shared state for live Top 10 — set by applyFilter once data loads
   let currentVisible = [];
+
+  function movementsHTML(subset) {
+    const counts = {};
+    subset.forEach(a => {
+      if (!a.movement) return;
+      a.movement.split(';').forEach(m => {
+        const key = m.trim();
+        if (key) counts[key] = (counts[key] || 0) + a.paintings.length;
+      });
+    });
+    const rows = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 30)
+      .map(([m, n]) => `<div class="data-row"><span class="label">${movementEmojis(m)} ${escHtml(m)}</span><span class="val">${n}</span></div>`)
+      .join('');
+    return `<h3>Art Movements</h3>${rows || '<p style="color:#666">No data</p>'}`;
+  }
 
   function top10HTML(subset) {
     const counts = {};
@@ -829,46 +913,11 @@
       <p>Data sourced from the <a href="https://github.com/metmuseum/openaccess" target="_blank">Met Open Access</a> dataset, enriched with artist biographies from <a href="https://www.wikidata.org" target="_blank">Wikidata</a>.</p>
       <p>Use the timeline slider at the bottom to filter by year. Click any marker to explore the artist's works.</p>
     `,
-    movements: '<h3>Art Movements</h3><p style="color:#666">Loading…</p>',
-    countries: '<h3>By Country</h3><p style="color:#666">Loading…</p>',
     top10:     '<h3>Top 10 Countries</h3><p style="color:#666">Loading…</p>',
   };
 
   function buildSidebarData(artists) {
-    // Movements by painting count
-    const movCounts = {};
-    artists.forEach(a => {
-      if (!a.movement) return;
-      a.movement.split(';').forEach(m => {
-        const key = m.trim();
-        if (key) movCounts[key] = (movCounts[key] || 0) + a.paintings.length;
-      });
-    });
-    const movRows = Object.entries(movCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 30)
-      .map(([m, n]) => `<div class="data-row"><span class="label">${movementEmojis(m)} ${escHtml(m)}</span><span class="val">${n}</span></div>`)
-      .join('');
-    panelData.movements = `<h3>Art Movements</h3>${movRows || '<p style="color:#666">No data</p>'}`;
-
-    // Countries — extract from birth_place last segment or citizenship
-    const countryCounts = {};
-    artists.forEach(a => {
-      const raw = a.birth_place || a.citizenship || '';
-      const country = raw.includes(',') ? raw.split(',').pop().trim() : raw.trim();
-      if (country) countryCounts[country] = (countryCounts[country] || 0) + a.paintings.length;
-    });
-
-    const sorted = Object.entries(countryCounts).sort((a, b) => b[1] - a[1]);
-
-    panelData.countries = `<h3>By Country</h3>` + sorted
-      .map(([c, n]) => `<div class="data-row"><span class="label">${escHtml(c)}</span><span class="val">${n}</span></div>`)
-      .join('');
-
-    panelData.top10 = `<h3>Top 10 Countries</h3>` + sorted
-      .slice(0, 10)
-      .map(([c, n], i) => `<div class="data-row"><span class="rank">${i + 1}.</span><span class="label">${escHtml(c)}</span><span class="val">${n}</span></div>`)
-      .join('');
+    currentVisible = artists;
   }
 
   sidebarBtn.addEventListener('click', () => {
@@ -888,9 +937,9 @@
       sidebarOpts.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const panel = btn.dataset.panel;
-      sidebarContent.innerHTML = panel === 'top10'
-        ? top10HTML(currentVisible)
-        : (panelData[panel] || '');
+      sidebarContent.innerHTML = panel === 'top10'     ? top10HTML(currentVisible)
+                               : panel === 'movements' ? movementsHTML(currentVisible)
+                               : (panelData[panel] || '');
       sidebarEl.classList.add('expanded');
     });
   });
@@ -1004,10 +1053,12 @@
         document.getElementById('count').textContent =
           `${visible} artists · ${paintings} paintings`;
 
-        // Refresh Top 10 panel if it's currently open
+        // Refresh dynamic panels if open
         const activeBtn = document.querySelector('.sidebar-opt.active');
         if (activeBtn?.dataset.panel === 'top10') {
           sidebarContent.innerHTML = top10HTML(currentVisible);
+        } else if (activeBtn?.dataset.panel === 'movements') {
+          sidebarContent.innerHTML = movementsHTML(currentVisible);
         }
       }
 
