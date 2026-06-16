@@ -1,6 +1,6 @@
 # Art Map
 
-An interactive world map of paintings from the Metropolitan Museum of Art, plotted by the artist's place of birth. 
+An interactive world map of paintings from the Metropolitan Museum of Art, plotted by the artist's place of birth.  https://mariadolmatova.github.io/art-map/
 
 ## What it does
 
